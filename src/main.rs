@@ -21,6 +21,9 @@ pub fn main() {
     let mut back_color = colors.next().unwrap();
     let mut front_color = colors.next().unwrap();
 
+    let mut base_x = 32;
+    let mut base_y = 61;
+
     drawer.set_scale(2f32, 2f32);
 
     let nintendo = [
@@ -52,10 +55,6 @@ pub fn main() {
 
     drawer.set_draw_color(*front_color);
 
-    let mut i = 0;
-    let mut x;
-    let mut y;
-
     let mut running = true;
     let mut event_pump = sdl_context.event_pump();
 
@@ -76,6 +75,10 @@ pub fn main() {
                         _ => {}
                     }
                 },
+                Event::KeyDown { keycode: KeyCode::Up, .. }    => { base_y -= 16; },
+                Event::KeyDown { keycode: KeyCode::Down, .. }  => { base_y += 16; },
+                Event::KeyDown { keycode: KeyCode::Left, .. }  => { base_x -= 16; },
+                Event::KeyDown { keycode: KeyCode::Right, .. } => { base_x += 16; },
                 _ => {}
             }
         }
@@ -85,19 +88,33 @@ pub fn main() {
         drawer.set_draw_color(*back_color);
         drawer.clear();
         drawer.set_draw_color(*front_color);
-        for byte in nintendo.iter() {
-            x = (i - (i % 8)) % 96;
-            y = (i / 96) * 8 + i % 8;
+
+        drawer.draw_1bpp(&nintendo, base_x, base_y, 96);
+        drawer.present();
+    }
+}
+
+trait Draw1BPP {
+    fn draw_1bpp(&mut self, bytes: &[u8], origin_x: i32, origin_y: i32, width: i32);
+}
+
+impl<'a> Draw1BPP for sdl2::render::RenderDrawer<'a> {
+    fn draw_1bpp(&mut self, bytes: &[u8], origin_x: i32, origin_y: i32, width: i32) {
+        let mut i = 0;
+        let mut x;
+        let mut y;
+
+        for byte in bytes.iter() {
+            x = (i - (i % 8)) % width;
+            y = (i / width) * 8 + i % 8;
 
             for b in 0..8 {
                 if 1 == ((byte >> (7 - b)) & 1) {
-                    drawer.draw_point(Point::new(32 + x + b, 61 + y));
+                    self.draw_point(Point::new(origin_x + x + b, origin_y + y));
                 }
             }
 
             i += 1;
         }
-        i = 0;
-        drawer.present();
     }
 }
