@@ -1,0 +1,7 @@
+[package]
+name = "isofun"
+version = "0.1.0"
+authors = ["Nadir Sampaoli <nadirsampaoli@gmail.com>"]
+
+[dependencies]
+sdl2 = "*"
